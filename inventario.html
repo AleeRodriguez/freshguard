@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshGuard - Inventario</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      color: #023e8a;
+    }
+
+    .btn {
+      background: #0077b6;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: #023e8a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #0077b6;
+      color: white;
+    }
+
+    tr:hover {
+      background: #e9f5ff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Inventario</h1>
+    <button class="btn" id="btnInicio">🏠 Inicio</button>
+
+<script>
+  document.getElementById("btnInicio").addEventListener("click", function() {
+    window.location.href = "inicio.html";
+  });
+</script>
+
+  </header>
+
+  <button class="btn" onclick="agregarProducto()">➕ Agregar Producto</button>
+
+  <table id="tablaInventario">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Fecha de Caducidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Leche</td>
+        <td>20</td>
+        <td>2025-11-15</td>
+      </tr>
+      <tr>
+        <td>Yogurt</td>
+        <td>35</td>
+        <td>2025-11-25</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function agregarProducto() {
+      const tabla = document.getElementById("tablaInventario").getElementsByTagName("tbody")[0];
+      const nuevaFila = tabla.insertRow();
+
+      const celda1 = nuevaFila.insertCell(0);
+      const celda2 = nuevaFila.insertCell(1);
+      const celda3 = nuevaFila.insertCell(2);
+
+      celda1.innerHTML = prompt("Ingrese el nombre del producto:");
+      celda2.innerHTML = prompt("Ingrese la cantidad:");
+      celda3.innerHTML = prompt("Ingrese la fecha de caducidad (AAAA-MM-DD):");
+    }
+  </script>
+</body>
+</html>

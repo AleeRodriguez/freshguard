@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshGuard - Inicio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background: #f1f5f9;
+    }
+
+    /* Barra lateral */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px; /* Oculto al inicio */
+      width: 250px;
+      height: 100%;
+      background: #023e8a;
+      color: #fff;
+      transition: left 0.3s ease;
+      padding-top: 60px;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .sidebar ul li:hover {
+      background: #0077b6;
+    }
+
+    /* Botón hamburguesa */
+    .hamburger {
+      position: fixed;
+      top: 5px;
+      left: 20px;
+      font-size: 50px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    /* Contenido principal */
+    .main-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      font-size: 2rem;
+      color: #023e8a;
+      text-align: center;
+    }
+
+    .main-content img {
+      display: block;
+      margin: 0 auto 10px auto;
+      width: 100px; /* tamaño del logo */
+    }
+  </style>
+</head>
+<body>
+  <!-- Botón hamburguesa -->
+  <button class="hamburger" id="hamburger">&#9776;</button>
+
+  <!-- Menú lateral -->
+  <div class="sidebar" id="sidebar">
+    <ul>
+      <li>Inicio</li>
+      <li><a href="inventario.html" style="color:white; text-decoration:none;">Inventario</a></li>
+      <li>Gestor de caducidades</li>
+      <li>Reportes</li>
+      <li>Configuración</li>
+      <li><a href="index.html" style="color:white; text-decoration:none;">Cerrar sesión</a></li>
+    </ul>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div>
+      <img src="logo.png" alt="Logo FreshGuard"> <!-- Aquí pondrás tu icono o imagen -->
+      <h1>FreshGuard</h1>
+    </div>
+  </div>
+
+  <script>
+    const hamburger = document.getElementById("hamburger");
+    const sidebar = document.getElementById("sidebar");
+
+    hamburger.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+    });
+  </script>
+</body>
+</html>
