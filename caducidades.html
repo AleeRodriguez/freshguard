@@ -35,6 +35,41 @@
     .btn:hover {
       background: #023e8a;
     }
+
+    /* Estilos para la tabla de caducidades */
+    #tablaCaducidades {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    #tablaCaducidades th, #tablaCaducidades td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    #tablaCaducidades th {
+      background-color: #0077b6;
+      color: white;
+    }
+
+    /* Estilos de alerta de caducidad */
+    .alerta-vencido {
+      background-color: #ff6666; /* Rojo para vencido */
+      color: white;
+      font-weight: bold;
+    }
+    .alerta-proximo {
+      background-color: #ffcc66; /* Amarillo/Naranja para próximo a vencer */
+      color: #333;
+      font-weight: bold;
+    }
+    .alerta-vigente {
+      background-color: #a8e6a8; /* Verde para vigente */
+    }
   </style>
 </head>
 <body>
@@ -43,9 +78,99 @@
     <button class="btn" id="btnInicio">🏠 Inicio</button>
   </header>
 
-  <p>Aquí podrás controlar y visualizar los productos próximos a caducar.</p>
+  <h2>Resumen de Productos</h2>
+  <table id="tablaCaducidades">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Fecha de Caducidad</th>
+        <th>Días Restantes</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      </tbody>
+  </table>
 
   <script>
+    // --- Lógica de Caducidades (Mostrar datos y clasificar) ---
+    const STORAGE_KEY = 'inventarioProductos';
+    const DIAS_ALERTA = 30; // 30 días o menos para el estado "Próximo a Vencer"
+
+    /**
+     * Función para calcular la diferencia de días y clasificar el estado.
+     */
+    function clasificarProducto(producto) {
+        // Convertimos la cadena de fecha a un objeto Date (esto lo hace en base a la fecha del navegador)
+        const fechaCaducidad = new Date(producto.fecha);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Normalizamos la hora de hoy
+
+        const diferenciaTiempo = fechaCaducidad.getTime() - hoy.getTime();
+        const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+        let estado = 'VIGENTE';
+        let clase = 'alerta-vigente';
+        
+        if (diasRestantes <= 0) {
+            estado = '¡VENCIDO!';
+            clase = 'alerta-vencido';
+        } else if (diasRestantes <= DIAS_ALERTA) {
+            estado = 'PRÓXIMO A VENCER';
+            clase = 'alerta-proximo';
+        }
+
+        return {
+            diasRestantes: diasRestantes,
+            estado: estado,
+            clase: clase
+        };
+    }
+
+    /**
+     * Función principal para cargar y mostrar los productos en la tabla.
+     */
+    function cargarCaducidades() {
+        const tablaBody = document.querySelector('#tablaCaducidades tbody');
+        tablaBody.innerHTML = ''; // Limpiar la tabla
+
+        const productosJSON = localStorage.getItem(STORAGE_KEY);
+        let productos = productosJSON ? JSON.parse(productosJSON) : [];
+
+        if (productos.length === 0) {
+            tablaBody.innerHTML = '<tr><td colspan="4">No hay productos en el inventario.</td></tr>';
+            return;
+        }
+
+        // Ordenamos los productos para que los vencidos o próximos aparezcan primero
+        productos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+        // Procesar cada producto y crear la fila de la tabla
+        productos.forEach(producto => {
+            const clasificacion = clasificarProducto(producto);
+            const fechaCaducidad = new Date(producto.fecha);
+
+            const row = tablaBody.insertRow();
+            row.className = clasificacion.clase;
+
+            row.insertCell().textContent = producto.nombre;
+
+            // Fecha de Caducidad (formato amigable)
+            row.insertCell().textContent = fechaCaducidad.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            // Días Restantes
+            row.insertCell().textContent = clasificacion.diasRestantes <= 0 ? 
+                                           'Vencido' : 
+                                           `${clasificacion.diasRestantes} días`;
+
+            // Estado
+            row.insertCell().textContent = clasificacion.estado;
+        });
+    }
+
+    // Ejecutar la función cuando la página esté lista
+    document.addEventListener('DOMContentLoaded', cargarCaducidades);
+    
     document.getElementById("btnInicio").addEventListener("click", function() {
       window.location.href = "inicio.html";
     });

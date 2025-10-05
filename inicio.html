@@ -38,9 +38,9 @@
 
     .bienvenida, .resumen, .acciones {
       background: rgb(255, 255, 255);
-      padding: 20px;
+      padding: 5px;
       border-radius: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 0px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
@@ -52,55 +52,150 @@
 
     .resumen .card {
       background: #e0f0ff;
-      padding: 15px;
+      padding: 5px;
       border-radius: 8px;
-      width: 150px;
+      width: 100vh;
     }
 
-    .acciones .btn {
-      margin-right: 10px;
-      margin-top: 10px;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
+   .acciones {
+  display: flex;           /* Para alinear los elementos horizontalmente */
+  justify-content: center; /* Centra las tarjetas en la pantalla */
+  gap: 20px;               /* Espacio entre botones */
+  margin-top: 0px;
+  flex-wrap: wrap;         /* Permite que bajen a otra línea si la pantalla es pequeña */
+}
+
+.acciones .btn {
+  padding: 20px 30px;      /* Botones más grandes, estilo “tarjeta” */
+  text-decoration: none;
+  background: #1bb923;
+  color: white;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  font-size: 1.2rem;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.acciones .btn:hover {
+  background: #023e8a;
+  transform: translateY(-3px); /* Pequeño efecto hover */
+}
+nav ul {
+  list-style: none; /* Quita los puntos */
+  display: flex;    /* Alinea horizontalmente */
+  gap: 10px;        /* Espacio entre los “botones” */
+  padding: 0;
+}
+
+nav ul li a {
+  text-decoration: none;  /* Quita subrayado */
+  padding: 8px 15px;
+  background: #05c42f;
+  color: white;
+  border-radius: 8px;
+  transition: background 0.3s, transform 0.2s;
+  display: inline-block;
+}
+
+nav ul li a:hover {
+  background: #016101;
+  transform: translateY(-2px);
+}
+
+
   </style>
 </head>
 <body>
-  <header>
-    <h1>FreshGuard</h1>
-    <button class="btn" id="btnInicio">🏠 Inicio</button>
-  </header>
+  <header>
+    <h1>FreshGuard</h1>
+    <button class="btn" id="btnInicio">🏠 Inicio</button>
+  </header>
 
-  <section class="bienvenida">
-    <h2>Bienvenido</h2>
-    <p>Tu asistente para gestionar inventarios y caducidades de productos.</p>
-  </section>
+  <section class="bienvenida">
+    <h2>Bienvenido</h2>
+    <p>Tu asistente para gestionar inventarios y caducidades de productos.</p>
+  </section>
 
-  <section class="resumen">
-    <div class="card">
-      <h3>Productos totales</h3>
-      <p>120</p>
-    </div>
-    <div class="card">
-      <h3>Próximos a vencer</h3>
-      <p>8</p>
-    </div>
-    <div class="card">
-      <h3>Caducados</h3>
-      <p>3</p>
-    </div>
-  </section>
+  <section class="resumen">
+    <div class="card">
+      <h3>Productos totales</h3>
+            <p id="total-productos">0</p>
+    </div>
+    <div class="card">
+      <h3>Próximos a vencer</h3>
+            <p id="total-proximos">0</p>
+    </div>
+    <div class="card">
+      <h3>Caducados</h3>
+            <p id="total-vencidos">0</p>
+    </div>
+  </section>
 
-  <section class="acciones">
-    <li><a href="inventario.html" style="color:#023e8a; text-decoration:none;">Inventario</a></li>
-      <li><a href="caducidades.html" style="color:#023e8a; text-decoration:none;">Caducidades</a></li>
-      <li><a href="reportes.html" style="color: #023e8a; text-decoration:none;">Reportes</a></li>
-      <li><a href="configuracion.html" style="color:#023e8a; text-decoration:none;">Configuración</a></li>
-      <li><a href="index.html" style="color:#023e8a; text-decoration:none;">Cerrar sesión</a></li>
-  </section>
+  <nav class="acciones">
+    <ul>
+    <li><a href="inventario.html" style="color:#fdfdfd; text-decoration:none;">Inventario</a></li>
+      <li><a href="caducidades.html" style="color:#ffffff; text-decoration:none;">Caducidades</a></li>
+      <li><a href="reportes.html" style="color: #ffffff; text-decoration:none;">Reportes</a></li>
+      <li><a href="configuracion.html" style="color:#ffffff; text-decoration:none;">Configuración</a></li>
+      <li><a href="index.html" style="color:#ffffff; text-decoration:none;">Cerrar sesión</a></li>
+      </ul>
+    </nav>
 
   <script>
+    // --- Lógica del Resumen (Contar y Mostrar Totales) ---
+    const STORAGE_KEY = 'inventarioProductos';
+    const DIAS_ALERTA = 30; // Mismo umbral usado en Caducidades
+
+    /**
+     * Función para clasificar el estado de un producto (Vencido, Próximo o Vigente).
+     */
+    function clasificarProducto(producto) {
+        const fechaCaducidad = new Date(producto.fecha);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); 
+
+        const diferenciaTiempo = fechaCaducidad.getTime() - hoy.getTime();
+        const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+        if (diasRestantes <= 0) {
+            return 'vencido';
+        } else if (diasRestantes <= DIAS_ALERTA) {
+            return 'proximo';
+        } else {
+            return 'vigente';
+        }
+    }
+
+    /**
+     * Función principal para calcular y mostrar los totales en las tarjetas.
+     */
+    function actualizarResumen() {
+        const productosJSON = localStorage.getItem(STORAGE_KEY);
+        const productos = productosJSON ? JSON.parse(productosJSON) : [];
+
+        let totalVencidos = 0;
+        let totalProximos = 0;
+
+        // Contar productos en cada categoría
+        productos.forEach(producto => {
+            const estado = clasificarProducto(producto);
+            if (estado === 'vencido') {
+                totalVencidos++;
+            } else if (estado === 'proximo') {
+                totalProximos++;
+            }
+        });
+
+        // Actualizar el DOM (los números en las tarjetas)
+        document.getElementById('total-productos').textContent = productos.length;
+        document.getElementById('total-proximos').textContent = totalProximos;
+        document.getElementById('total-vencidos').textContent = totalVencidos;
+    }
+
+    // --- Ejecución y Navegación ---
+    document.addEventListener('DOMContentLoaded', actualizarResumen);
+    
     document.getElementById("btnInicio").addEventListener("click", function() {
       window.location.href = "inicio.html";
     });

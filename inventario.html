@@ -1,123 +1,196 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreshGuard - Inventario</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshGuard - Inventario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-    body {
-      background: #f1f5f9;
-      padding: 20px;
-    }
+        body {
+            background: #f1f5f9;
+            padding: 20px;
+        }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-    header h1 {
-      color: #023e8a;
-    }
+        header h1 {
+            color: #023e8a;
+        }
 
-    .btn {
-      background: #0077b6;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+        .btn {
+            background: #0077b6;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
 
-    .btn:hover {
-      background: #023e8a;
-    }
+        .btn:hover {
+            background: #023e8a;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
 
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-    th {
-      background: #0077b6;
-      color: white;
-    }
+        th {
+            background: #0077b6;
+            color: white;
+        }
 
-    tr:hover {
-      background: #e9f5ff;
-    }
-  </style>
+        tr:hover {
+            background: #e9f5ff;
+        }
+        
+        /* Estilo específico para el botón de eliminar */
+        .btn-eliminar {
+            background: #ff6666; /* Rojo */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-eliminar:hover {
+            background: #cc0000;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Inventario</h1>
-    <button class="btn" id="btnInicio">🏠 Inicio</button>
+    <header>
+        <h1>Inventario</h1>
+        <button class="btn" id="btnInicio">🏠 Inicio</button>
+    </header>
 
-<script>
-  document.getElementById("btnInicio").addEventListener("click", function() {
-    window.location.href = "inicio.html";
-  });
-</script>
+    <button class="btn" onclick="agregarProducto()">➕ Agregar Producto</button>
 
-  </header>
+    <table id="tablaInventario">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Fecha de Caducidad</th>
+                <th>Acción</th> 
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
 
-  <button class="btn" onclick="agregarProducto()">➕ Agregar Producto</button>
+    <script>
+        // --- Lógica del Inventario (Guardar, Cargar, Eliminar) ---
+        const STORAGE_KEY = 'inventarioProductos';
 
-  <table id="tablaInventario">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Cantidad</th>
-        <th>Fecha de Caducidad</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Leche</td>
-        <td>20</td>
-        <td>2025-11-15</td>
-      </tr>
-      <tr>
-        <td>Yogurt</td>
-        <td>35</td>
-        <td>2025-11-25</td>
-      </tr>
-    </tbody>
-  </table>
+        /**
+         * Carga los productos guardados y los muestra en la tabla.
+         */
+        function cargarInventario() {
+            const tablaBody = document.querySelector('#tablaInventario tbody');
+            tablaBody.innerHTML = ''; // Limpia la tabla
+            
+            const productosJSON = localStorage.getItem(STORAGE_KEY);
+            const productos = productosJSON ? JSON.parse(productosJSON) : [];
 
-  <script>
-    function agregarProducto() {
-      const tabla = document.getElementById("tablaInventario").getElementsByTagName("tbody")[0];
-      const nuevaFila = tabla.insertRow();
+            productos.forEach((producto, index) => { // Importante: usamos 'index' para identificar la fila
+                const nuevaFila = tablaBody.insertRow();
+                nuevaFila.insertCell(0).textContent = producto.nombre;
+                nuevaFila.insertCell(1).textContent = producto.cantidad;
+                
+                const fechaMostrar = new Date(producto.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                nuevaFila.insertCell(2).textContent = fechaMostrar;
+                
+                // NUEVA CELDA: Botón de Eliminar
+                const celdaAccion = nuevaFila.insertCell(3);
+                celdaAccion.innerHTML = `<button class="btn-eliminar" onclick="eliminarProducto(${index})">Eliminar</button>`;
+            });
+        }
 
-      const celda1 = nuevaFila.insertCell(0);
-      const celda2 = nuevaFila.insertCell(1);
-      const celda3 = nuevaFila.insertCell(2);
+        /**
+         * Solicita datos al usuario y los guarda.
+         */
+        function agregarProducto() {
+            const nombre = prompt("Ingrese el nombre del producto:");
+            if (!nombre) return; 
+            
+            const cantidad = prompt("Ingrese la cantidad:");
+            if (!cantidad) return; 
 
-      celda1.innerHTML = prompt("Ingrese el nombre del producto:");
-      celda2.innerHTML = prompt("Ingrese la cantidad:");
-      celda3.innerHTML = prompt("Ingrese la fecha de caducidad (AAAA-MM-DD):");
-    }
-  </script>
+            const fecha = prompt("Ingrese la fecha de caducidad (AAAA-MM-DD):");
+            
+            if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+                alert("Formato de fecha incorrecto. Use AAAA-MM-DD.");
+                return;
+            }
+
+            const productosJSON = localStorage.getItem(STORAGE_KEY);
+            const productos = productosJSON ? JSON.parse(productosJSON) : [];
+
+            productos.push({
+                nombre: nombre,
+                cantidad: cantidad,
+                fecha: fecha
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
+            cargarInventario();
+            // Notificamos a las otras páginas que los datos cambiaron (Inicio y Caducidades)
+            window.dispatchEvent(new Event('storage')); 
+        }
+
+        /**
+         * Elimina un producto por su índice de la lista y actualiza el almacenamiento.
+         * @param {number} index El índice del producto a eliminar en el array.
+         */
+        function eliminarProducto(index) {
+            if (!confirm("¿Está seguro de que desea eliminar este producto del inventario?")) {
+                return;
+            }
+
+            const productosJSON = localStorage.getItem(STORAGE_KEY);
+            const productos = productosJSON ? JSON.parse(productosJSON) : [];
+
+            // Usamos splice para remover el elemento del array por su índice
+            productos.splice(index, 1); 
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
+            cargarInventario();
+             // Notificamos a las otras páginas que los datos cambiaron (Inicio y Caducidades)
+            window.dispatchEvent(new Event('storage')); 
+        }
+
+        // Ejecutar funciones al cargar la página
+        document.addEventListener('DOMContentLoaded', cargarInventario);
+        document.getElementById("btnInicio").addEventListener("click", function() {
+            window.location.href = "inicio.html";
+        });
+    </script>
 </body>
 </html>
