@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreshGuard - Inventario</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -25,22 +27,42 @@
         }
 
         header h1 {
-            color: #023e8a;
+            color: #05c42f;
         }
 
+        /* Estilo original para el botón de Inicio */
         .btn {
-            background: #0077b6;
+            background: #05c42f;
             color: white;
             padding: 10px 15px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.3s;
-            margin-bottom: 20px;
         }
 
         .btn:hover {
-            background: #023e8a;
+            background: #016b18;
+        }
+
+        /* Estilos para el grupo de botones de agregar */
+        .btn-group {
+            margin-bottom: 20px;
+        }
+
+        .btn-group button {
+            background: #05c42f;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px; /* Separación entre los dos botones */
+        }
+
+        .btn-group button:hover {
+            background: #016b18;
         }
 
         table {
@@ -59,7 +81,7 @@
         }
 
         th {
-            background: #0077b6;
+            background: #05c42f;
             color: white;
         }
 
@@ -82,6 +104,40 @@
         .btn-eliminar:hover {
             background: #cc0000;
         }
+
+        /* Estilos del Popup y Escáner */
+        #scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; /* Inicialmente oculto */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        #scanner-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+        }
+        #scanner-display {
+            width: 80%;
+            height: 80%;
+            max-width: 500px;
+            max-height: 500px;
+        }
+        #scanner-message {
+            color: white;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -90,7 +146,10 @@
         <button class="btn" id="btnInicio">🏠 Inicio</button>
     </header>
 
-    <button class="btn" onclick="agregarProducto()">➕ Agregar Producto</button>
+    <div class="btn-group">
+        <button onclick="agregarProductoMano()">➕ Agregar a Mano</button>
+        <button onclick="iniciarEscaneo()">📱 Agregar vía Código de Barra</button>
+    </div>
 
     <table id="tablaInventario">
         <thead>
@@ -105,21 +164,24 @@
             </tbody>
     </table>
 
+    <div id="scanner-container">
+        <span id="scanner-close" onclick="detenerEscaneo()">×</span>
+        <div id="scanner-message">Escanee su producto...</div>
+        <div id="scanner-display"></div> </div>
+
     <script>
         // --- Lógica del Inventario (Guardar, Cargar, Eliminar) ---
         const STORAGE_KEY = 'inventarioProductos';
+        let escaneoActivo = false;
 
-        /**
-         * Carga los productos guardados y los muestra en la tabla.
-         */
         function cargarInventario() {
             const tablaBody = document.querySelector('#tablaInventario tbody');
-            tablaBody.innerHTML = ''; // Limpia la tabla
+            tablaBody.innerHTML = '';
             
             const productosJSON = localStorage.getItem(STORAGE_KEY);
             const productos = productosJSON ? JSON.parse(productosJSON) : [];
 
-            productos.forEach((producto, index) => { // Importante: usamos 'index' para identificar la fila
+            productos.forEach((producto, index) => {
                 const nuevaFila = tablaBody.insertRow();
                 nuevaFila.insertCell(0).textContent = producto.nombre;
                 nuevaFila.insertCell(1).textContent = producto.cantidad;
@@ -127,16 +189,12 @@
                 const fechaMostrar = new Date(producto.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 nuevaFila.insertCell(2).textContent = fechaMostrar;
                 
-                // NUEVA CELDA: Botón de Eliminar
                 const celdaAccion = nuevaFila.insertCell(3);
                 celdaAccion.innerHTML = `<button class="btn-eliminar" onclick="eliminarProducto(${index})">Eliminar</button>`;
             });
         }
 
-        /**
-         * Solicita datos al usuario y los guarda.
-         */
-        function agregarProducto() {
+        function agregarProductoMano() {
             const nombre = prompt("Ingrese el nombre del producto:");
             if (!nombre) return; 
             
@@ -150,25 +208,20 @@
                 return;
             }
 
+            guardarNuevoProducto({ nombre, cantidad, fecha });
+        }
+        
+        function guardarNuevoProducto(nuevoProducto) {
             const productosJSON = localStorage.getItem(STORAGE_KEY);
             const productos = productosJSON ? JSON.parse(productosJSON) : [];
 
-            productos.push({
-                nombre: nombre,
-                cantidad: cantidad,
-                fecha: fecha
-            });
+            productos.push(nuevoProducto);
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
             cargarInventario();
-            // Notificamos a las otras páginas que los datos cambiaron (Inicio y Caducidades)
             window.dispatchEvent(new Event('storage')); 
         }
 
-        /**
-         * Elimina un producto por su índice de la lista y actualiza el almacenamiento.
-         * @param {number} index El índice del producto a eliminar en el array.
-         */
         function eliminarProducto(index) {
             if (!confirm("¿Está seguro de que desea eliminar este producto del inventario?")) {
                 return;
@@ -177,16 +230,75 @@
             const productosJSON = localStorage.getItem(STORAGE_KEY);
             const productos = productosJSON ? JSON.parse(productosJSON) : [];
 
-            // Usamos splice para remover el elemento del array por su índice
             productos.splice(index, 1); 
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
             cargarInventario();
-             // Notificamos a las otras páginas que los datos cambiaron (Inicio y Caducidades)
             window.dispatchEvent(new Event('storage')); 
         }
 
-        // Ejecutar funciones al cargar la página
+        // --- Lógica del Escaneo (QuaggaJS) ---
+        
+        function iniciarEscaneo() {
+            document.getElementById('scanner-container').style.display = 'flex';
+            escaneoActivo = true;
+
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner-display'),
+                    constraints: {
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader", "code_128_reader", "upc_reader"]
+                }
+            }, function (err) {
+                if (err) {
+                    console.error("Error al iniciar Quagga:", err);
+                    document.getElementById('scanner-message').textContent = "Error: No se pudo iniciar la cámara.";
+                    return;
+                }
+                console.log("Inicialización completa. Empezando a escanear.");
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function(data) {
+                Quagga.stop();
+                document.getElementById('scanner-container').style.display = 'none';
+                escaneoActivo = false;
+                
+                const codigoBarra = data.codeResult.code;
+                alert(`Código de barras escaneado: ${codigoBarra}.`);
+                
+                // --- PROCESO POST-ESCANEO (SIMULADO) ---
+                const nombreProducto = prompt(`Código: ${codigoBarra}. Ingrese el nombre del producto:`);
+                if (!nombreProducto) return;
+                
+                const cantidad = prompt(`Ingrese la cantidad para ${nombreProducto}:`);
+                if (!cantidad) return; 
+
+                const fecha = prompt(`Ingrese la fecha de caducidad (AAAA-MM-DD) para ${nombreProducto}:`);
+                if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+                    alert("Formato de fecha incorrecto. Producto NO agregado.");
+                    return;
+                }
+                
+                guardarNuevoProducto({ nombre: nombreProducto, cantidad, fecha });
+            });
+        }
+
+        function detenerEscaneo() {
+            if (escaneoActivo) {
+                Quagga.stop();
+                escaneoActivo = false;
+            }
+            document.getElementById('scanner-container').style.display = 'none';
+        }
+
+        // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', cargarInventario);
         document.getElementById("btnInicio").addEventListener("click", function() {
             window.location.href = "inicio.html";
