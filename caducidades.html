@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="/images/LOGO.jpg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreshGuard - Gestor de Caducidades</title>
@@ -71,6 +73,52 @@
     .alerta-vigente {
       background-color: #a8e6a8; /* Verde para vigente */
     }
+
+    .acciones {
+  display: flex;           /* Para alinear los elementos horizontalmente */
+  justify-content: center; /* Centra las tarjetas en la pantalla */
+  gap: 20px;               /* Espacio entre botones */
+  margin-top: 0px;
+  flex-wrap: wrap;         /* Permite que bajen a otra línea si la pantalla es pequeña */
+}
+
+.acciones .btn {
+  padding: 20px 30px;      /* Botones más grandes, estilo “tarjeta” */
+  text-decoration: none;
+  background: #1bb923;
+  color: white;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  font-size: 1.2rem;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.acciones .btn:hover {
+  background: #023e8a;
+  transform: translateY(-3px); /* Pequeño efecto hover */
+}
+    nav ul {
+  list-style: none; /* Quita los puntos */
+  display: flex;    /* Alinea horizontalmente */
+  gap: 10px;        /* Espacio entre los “botones” */
+  padding: 0;
+}
+
+nav ul li a {
+  text-decoration: none;  /* Quita subrayado */
+  padding: 8px 15px;
+  background: #05c42f;
+  color: white;
+  border-radius: 8px;
+  transition: background 0.3s, transform 0.2s;
+  display: inline-block;
+}
+
+nav ul li a:hover {
+  background: #016101;
+  transform: translateY(-2px);
+}
   </style>
 </head>
 <body>
@@ -92,6 +140,16 @@
     <tbody>
       </tbody>
   </table>
+
+  <nav class="acciones">
+    <ul>
+    <li><a href="inventario.html" style="color:#fdfdfd; text-decoration:none;">Inventario</a></li>
+      <li><a href="caducidades.html" style="color:#ffffff; text-decoration:none;">Caducidades</a></li>
+      <li><a href="reportes.html" style="color: #ffffff; text-decoration:none;">Reportes</a></li>
+      <li><a href="configuracion.html" style="color:#ffffff; text-decoration:none;">Configuración</a></li>
+      <li><a href="index.html" style="color:#ffffff; text-decoration:none;">Cerrar sesión</a></li>
+      </ul>
+    </nav>
 
   <script>
     // --- Lógica de Caducidades (Mostrar datos y clasificar) ---
